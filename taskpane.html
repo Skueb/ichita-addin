@@ -1,0 +1,47 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
+ * ICHITA-Assistant: taskpane.js
+ */
+
+// ตรวจสอบว่า Office พร้อมทำงานหรือไม่
+Office.onReady((info) => {
+  if (info.host === Office.HostType.Word) {
+    // ตรวจสอบว่าปุ่มใน HTML มี ID ว่า 'run-format' หรือไม่
+    const formatButton = document.getElementById("run-format");
+    if (formatButton) {
+        formatButton.onclick = formatDocument;
+    }
+    console.log("ICHITA: Word Add-in is ready.");
+  }
+});
+
+/**
+ * ฟังก์ชันหลักในการจัดรูปแบบเอกสาร
+ */
+async function formatDocument() {
+  try {
+    await Word.run(async (context) => {
+      // 1. อ้างอิงถึงเนื้อหา (Body) ของเอกสาร
+      const body = context.document.body;
+
+      // 2. ตั้งค่าการจัดรูปแบบ (ตัวอย่าง: รูปแบบทางการ)
+      body.font.name = "TH Sarabun New"; // เปลี่ยนชื่อฟอนต์ตามต้องการ
+      body.font.size = 16;
+      body.font.color = "black";
+      
+      // การตั้งค่าเพิ่มเติม เช่น การจัดย่อหน้า
+      body.paragraphs.items.forEach((para) => {
+        para.alignment = Word.Alignment.justified; // จัดแนวขอบเรียบ
+      });
+
+      // 3. สั่งให้ Word ทำการเปลี่ยนแปลง
+      await context.sync();
+      console.log("จัดรูปแบบเอกสารสำเร็จ!");
+    });
+  } catch (error) {
+    console.error("Error: " + error);
+    if (error instanceof OfficeExtension.Error) {
+      console.log("Debug info: " + JSON.stringify(error.debugInfo));
+    }
+  }
+}
